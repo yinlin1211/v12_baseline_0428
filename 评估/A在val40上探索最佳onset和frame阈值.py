@@ -359,12 +359,14 @@ def main():
 
         test_preds = infer_split(model, test_song_ids, config, gt_annotations, device, "test")
         test_rows = []
+        best_conp_item = next(item for item in selected if item["criterion"] == "best_COnP")
+        best_conp_key = (best_conp_item["onset"], best_conp_item["frame"])
         for item in unique_selected(selected):
             test_metrics = score_cached_predictions(test_preds, item["onset"], item["frame"], config)
             row = {"criterion": item["criterion"]}
             row.update(metric_row(item["onset"], item["frame"], test_metrics))
             test_rows.append(row)
-            if item["criterion"] == "best_COnP":
+            if (item["onset"], item["frame"]) == best_conp_key:
                 with (output_dir / "A_best_COnP阈值_test预测.json").open("w") as f:
                     json.dump(test_metrics["pred_json"], f, indent=2, ensure_ascii=False)
         write_rows(output_dir / "A_在test100上的结果.tsv", ["criterion"] + fields, test_rows)
